@@ -15,37 +15,60 @@ import java.util.*;
 public class MapperReducer_2 {
     public static IntWritable CORPUS_0 = new IntWritable(0);
     public static IntWritable CORPUS_1 = new IntWritable(1);
-    //<Text, <AmountIncurpus1, AmountInCurpus2>, <AmountOfTimes, CurpusNumber>, AmountOfTimesOppositeCurpus>
-    public static class MapperClass extends Mapper<Text, TupleWritable, TupleWritable, IntWritable>{
+
+
+
+    //[ Text, <Amount in Corpus0, Amount in Corpus1> ]
+    public static class Mapper2Class extends Mapper<Text, TupleWritable, IntWritable, TupleWritable>{
         @Override
         public void map(Text triplet, TupleWritable amountInEachCurpus, Context context) throws IOException, InterruptedException {
                 IntWritable amountOfTimesInCorpus0  =  (IntWritable)amountInEachCurpus.get(0);
                 IntWritable amountOfTimesInCorpus1  =  (IntWritable)amountInEachCurpus.get(1);
 
-                TupleWritable corpus0Pair = new TupleWritable(new Writable[]{amountOfTimesInCorpus0,CORPUS_0 });
-                TupleWritable corpus1Pair = new TupleWritable(new Writable[]{amountOfTimesInCorpus1,CORPUS_1 });
+                TupleWritable corpus0Pair = new TupleWritable(new Writable[]{CORPUS_0, amountOfTimesInCorpus1 });
+                TupleWritable corpus1Pair = new TupleWritable(new Writable[]{CORPUS_1,amountOfTimesInCorpus0 });
 
-                //     KEY                              VALUE
-                // [ <AmountOfTimes, CorpusNumber>, AmountOfTimesOppositeCorpus ]
-                context.write( corpus0Pair,amountOfTimesInCorpus1 );
-                context.write( corpus1Pair,amountOfTimesInCorpus0 );
+                context.write( amountOfTimesInCorpus0 ,corpus0Pair );
+                context.write( amountOfTimesInCorpus1,corpus1Pair );
         }
         }
-    }
+    // [ AmountOfTimes, <CorpusNumber AmountOfTimesOppositeCorpus> ]
 
-    public static class ReducerClass extends Reducer<TupleWritable, IntWritable, Text, IntWritable>{
+    public static class Reducer2Class extends Reducer<TupleWritable, IntWritable, IntWritable, TupleWritable>{
 
-        public void reduce(TupleWritable pairCorpusAmount, IntWritable amountInOppositeCorpus, Context context) throws IOException, InterruptedException {
+        public void reduce(IntWritable amountInCorpus, Iterable<TupleWritable>  amountAndOpposite, Context context) throws IOException, InterruptedException {
 
+            Iterator<TupleWritable> iterator = amountAndOpposite.iterator();
 
+            IntWritable T0 = new IntWritable(0);
+            IntWritable N0 = new IntWritable(0);
+            IntWritable T1 = new IntWritable(0);
+            IntWritable N1 = new IntWritable(0);
+            IntWritable R  = amountInCorpus;
 
+            while(iterator.hasNext()) {
+                TupleWritable record = iterator.next();
+                IntWritable CorpusNumber = (IntWritable)((record.get(0)));
+                IntWritable AmountInOppositeCorpusNumber = (IntWritable)((record.get(1)));
 
+                if(CorpusNumber.get() ==  0 ) {
+                    N0 = new IntWritable( N0.get() + 1);
+                    T1 = new IntWritable(T1.get() + AmountInOppositeCorpusNumber.get());
+                }else {
+                    N1 = new IntWritable( N1.get() + 1);
+                    T0 = new IntWritable(T0.get() + AmountInOppositeCorpusNumber.get());
+                }
+            }
 
+            IntWritable N0_N1 = new IntWritable(N1.get()+ N0.get());
+            IntWritable T0_T1 =  new IntWritable(T1.get()+ T0.get());
+            context.write(R , new TupleWritable(new Writable[]{N0_N1,T0_T1}));
 
             }
 
     }
 
+    // [ R, <N0+N1, T0+T1>]
 
 
 
@@ -53,10 +76,9 @@ public class MapperReducer_2 {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "word triplets count");
         job.setJarByClass(MapperReducer_2.class);
-        job.setMapperClass(MapperClass.class);
+        job.setMapperClass(Mapper2Class.class);
         job.setPartitionerClass(Partitioner.class);
-        job.setCombinerClass(ReducerClass.class);
-        job.setReducerClass(ReducerClass.class);
+        job.setReducerClass(Reducer2Class.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(MapWritable.class);
         job.setOutputKeyClass(Text.class);
