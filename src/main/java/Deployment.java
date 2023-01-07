@@ -7,6 +7,11 @@ public class Deployment {
 
 //Out of the box skeleton code need to be modified  to our needs.
     public static void main(String[] args) {
+        //splitCorpus()
+        //run map reduce on c1
+        //run map reduce on c2
+
+
         AmazonElasticMapReduce mapReduce = new AmazonElasticMapReduceClient();
         HadoopJarStepConfig hadoopJarStep = new HadoopJarStepConfig()
                 .withJar("s3n://yourbucket/yourfile.jar")
@@ -31,6 +36,9 @@ public class Deployment {
         RunJobFlowResult runJobFlowResult = mapReduce.runJobFlow(runFlowRequest);
         String jobFlowId = runJobFlowResult.getJobFlowId();
         System.out.println("Ran job flow with id: " + jobFlowId);
+
+        //get results an calculate N N1 N2 T1 T2
+        //output result for each trigram
     }
 
 

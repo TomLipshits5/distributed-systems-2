@@ -15,15 +15,9 @@ import java.util.StringTokenizer;
 
 public class MapperReducer {
     public static class MapperClass extends Mapper<LongWritable, Text, Text, MapWritable>{
-        private static IntWritable countWritable = new IntWritable(0);
-        private static Text wordPair = new Text();
-        private static Text newWord = new Text();
-
-        private static MapWritable wordPairsToStripe = new MapWritable();
-
-
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            MapWritable wordPairsToStripe = new MapWritable();
             StringTokenizer iterator = new StringTokenizer(value.toString());
             String word1 = "";
             String word2 = "";
@@ -41,6 +35,8 @@ public class MapperReducer {
                 word1 = word2;
                 word2 = word3;
                 word3 = iterator.nextToken();
+                Text wordPair = new Text();
+                Text newWord = new Text();
                 wordPair.set(word1 + " " + word2);
                 newWord.set(word3);
                 if(wordPairsToStripe.get(wordPair) == null){
@@ -50,27 +46,29 @@ public class MapperReducer {
                 if(stripe == null){
                     stripe = new MapWritable();
                 }
-                countWritable = (IntWritable)stripe.get(newWord);
+                IntWritable countWritable = (IntWritable) stripe.get(newWord);
                 if (countWritable == null){
                     countWritable = new IntWritable(0);
                 }
                 int count = countWritable.get();
                 countWritable.set(count + 1);
                 stripe.put(newWord, countWritable);
+                wordPairsToStripe.put(wordPair, stripe);
             }
 
             //Iterate through pairs and write to context the wordPair and the associated map with the pair
             for(Writable keyPair: wordPairsToStripe.keySet()){
-                wordPair = (Text) keyPair;
+                Text wordPair = (Text) keyPair;
                 MapWritable stripe = (MapWritable)wordPairsToStripe.get(wordPair);
                 context.write(wordPair, stripe);
             }
         }
     }
 
-    public static class ReducerClass extends Reducer<Text, MapWritable, Text, IntWritable>{
+    public static class ReducerClass extends Reducer<Text, MapWritable, Text, FloatWritable>{
 
         public void reduce(Text pair, Iterable<MapWritable> maps, Context context) throws IOException, InterruptedException {
+            //Can be combiner code
             MapWritable sumMap = new MapWritable();
             Iterator<MapWritable> iterator = maps.iterator();
             while(iterator.hasNext()){
@@ -89,12 +87,20 @@ public class MapperReducer {
                    }
                 }
             }
+            int den = 0;
+            for(Object val : sumMap.values()){
+                IntWritable count = (IntWritable)val;
+                den += count.get();
+            }
+            //End of combiner code
             Text tripleWord = new Text();
             for (Object key: sumMap.keySet()){
                 String word3 = key.toString();
                 String pairString = pair.toString();
                 tripleWord.set(pairString + " " + word3);
-                context.write(tripleWord, (IntWritable) sumMap.get((Text)key));
+                IntWritable result = (IntWritable) sumMap.get((Text)key);
+                float prec = (float)result.get() / (float)den;
+                context.write(tripleWord, new FloatWritable(prec));
             }
         }
     }
@@ -106,12 +112,11 @@ public class MapperReducer {
         job.setJarByClass(MapperReducer.class);
         job.setMapperClass(MapperClass.class);
         job.setPartitionerClass(Partitioner.class);
-        job.setCombinerClass(ReducerClass.class);
         job.setReducerClass(ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(MapWritable.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
+        job.setOutputValueClass(FloatWritable.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
