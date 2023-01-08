@@ -26,6 +26,7 @@ public class MapperReducer_3 {
         return true;
     }
     public static class Mapper_3 extends Mapper<LongWritable, Text, IntWritable, Text>{
+        @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             List<String> valueList = Arrays.asList(value.toString().split(" "));
             if (IsNumeric(valueList.get(0))){
@@ -54,7 +55,7 @@ public class MapperReducer_3 {
     }
 
     public static class Reducer_3 extends Reducer<IntWritable, Text, Text, FloatWritable>{
-
+        @Override
         public void reduce(IntWritable r, Iterable<Text> trigrams, Context context) throws IOException, InterruptedException {
             FloatWritable res = new FloatWritable();
             Iterator<Text> it = trigrams.iterator();
