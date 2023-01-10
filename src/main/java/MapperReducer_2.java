@@ -23,10 +23,13 @@ public class MapperReducer_2 {
             String amountsString = Arrays.asList(value.toString().split("\t")).get(1);
 
             IntWritable amountOfTimesInCorpus0 = new IntWritable(Integer.parseInt(Arrays.asList(amountsString.split(" ")).get(0)));
-            IntWritable amountOfTimesInCorpus1 = new IntWritable(Integer.parseInt(Arrays.asList(amountsString.split(" ")).get(0)));
+            IntWritable amountOfTimesInCorpus1 = new IntWritable(Integer.parseInt(Arrays.asList(amountsString.split(" ")).get(1)));
 
             TupleWritable corpus0Pair = new TupleWritable(CORPUS_0.get(), amountOfTimesInCorpus1.get());
             TupleWritable corpus1Pair = new TupleWritable(CORPUS_1.get(), amountOfTimesInCorpus0.get());
+
+            System.out.println(amountOfTimesInCorpus0 + " " + corpus0Pair);
+            System.out.println(amountOfTimesInCorpus1 + " " + corpus1Pair);
 
             context.write(amountOfTimesInCorpus0, corpus0Pair);
             context.write(amountOfTimesInCorpus1, corpus1Pair);

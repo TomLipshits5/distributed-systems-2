@@ -9,9 +9,9 @@ public class InputGenerator {
         String[] words = {"apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "huckleberry", "ice" ,"cream"};
         Random random = new Random();
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/java/input-file1.txt"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/java/input-file.txt"))) {
             int i = 0;
-            while (i < 50) {
+            while (i < 5) {
                 // Generate a random row
                 StringBuilder sb = new StringBuilder();
                 for (int j = 0; j < 3; j++) {
@@ -24,7 +24,7 @@ public class InputGenerator {
                 writer.write(sb.toString());
                 i++;
                 // Write an identical row with a 30% probability
-                while(random.nextInt(10) < 5 && i < 50) {
+                while(random.nextInt(10) < 5 && i < 5) {
                     writer.write(sb.toString());
                     i++;
                 }

@@ -1,0 +1,5 @@
+cream	elderberry	banana	5	1
+banana	cherry	date	1	1
+ice	grape	date	1	2
+ice	grape	date	1	2
+fig	elderberry	cream	5	10

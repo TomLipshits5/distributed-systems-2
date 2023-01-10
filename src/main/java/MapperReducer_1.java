@@ -59,10 +59,10 @@ public class MapperReducer_1 {
         job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(TupleWritable.class);
-//        FileInputFormat.addInputPath(job, new Path(args[0]));
-        MultipleInputs.addInputPath(job, new Path(args[0]), TextInputFormat.class);
-        MultipleInputs.addInputPath(job, new Path(args[1]), TextInputFormat.class);
-        FileOutputFormat.setOutputPath(job, new Path(args[2]));
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+//        MultipleInputs.addInputPath(job, new Path(args[0]), TextInputFormat.class);
+//        MultipleInputs.addInputPath(job, new Path(args[1]), TextInputFormat.class);
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
