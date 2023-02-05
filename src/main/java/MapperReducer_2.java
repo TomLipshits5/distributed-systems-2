@@ -42,7 +42,6 @@ public class MapperReducer_2 {
             public void reduce(IntWritable amountInCorpus, Iterable<TupleWritable> amountAndOpposite, Context context) throws IOException, InterruptedException {
 
                 Iterator<TupleWritable> iterator = amountAndOpposite.iterator();
-
                 IntWritable T0 = new IntWritable(0);
                 IntWritable N0 = new IntWritable(0);
                 IntWritable T1 = new IntWritable(0);

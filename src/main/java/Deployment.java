@@ -24,7 +24,7 @@ public class Deployment {
         EmrClient emr = EmrClient.builder().build();
         HadoopJarStepConfig hadoopJarStepConfig_1 = HadoopJarStepConfig.builder()
                 .jar(BucketName + jar_1)
-                .args(input_1, output_1)
+                .args(input_1_test, output_1)
                 .build();
         StepConfig step_1 = StepConfig.builder()
                 .name("Step_1")
@@ -54,8 +54,8 @@ public class Deployment {
                 .instances(JobFlowInstancesConfig.builder()
                         .ec2KeyName("amit_tom")
                         .instanceCount(9)
-                        .masterInstanceType("m4.xlarge")
-                        .slaveInstanceType("m4.xlarge")
+                        .masterInstanceType("m4.large")
+                        .slaveInstanceType("m4.large")
                         .keepJobFlowAliveWhenNoSteps(false)
                         .placement(PlacementType.builder().availabilityZone("us-east-1a").build())
                         .build())
@@ -64,12 +64,7 @@ public class Deployment {
                 .releaseLabel("emr-5.36.0")
                 .serviceRole("EMR_DefaultRole")
                 .jobFlowRole("EMR_EC2_DefaultRole").build();
-//                .applications(
-//                        Application.builder()
-//                                .name("Hadoop")
-//                                .version("2.10.1")
-//                                .build()
-//                )
+
 
         RunJobFlowResponse response = emr.runJobFlow(request);
         String jobFlowId = response.jobFlowId();
