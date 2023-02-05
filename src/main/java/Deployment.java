@@ -53,7 +53,7 @@ public class Deployment {
                 .name("AmitAndTomCluster")
                 .instances(JobFlowInstancesConfig.builder()
                         .ec2KeyName("amit_tom")
-                        .instanceCount(9)
+                        .instanceCount(2)
                         .masterInstanceType("m4.large")
                         .slaveInstanceType("m4.large")
                         .keepJobFlowAliveWhenNoSteps(false)
