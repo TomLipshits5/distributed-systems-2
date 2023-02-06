@@ -6,7 +6,8 @@ public class Deployment {
 
 //Out of the box skeleton code need to be modified  to our needs.
     public static  void main(String[] args)  {
-        String BucketName = "s3://ds-2-files/";
+        //TODO: change bucket-name accordingly.
+        String BucketName = "s3://ds-2-files-amit/";
         //step1
         String input_1 = "s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-us-all/3gram/data";
         String input_1_test = "s3://ds-2-files/input-file.txt";
@@ -54,13 +55,13 @@ public class Deployment {
                 .name("AmitAndTomCluster")
                 .instances(JobFlowInstancesConfig.builder()
                         .ec2KeyName("amit_tom")
-                        .instanceCount(2)
+                        .instanceCount(7)
                         .masterInstanceType(InstanceType.M5_XLARGE.toString())
                         .slaveInstanceType(InstanceType.M5_XLARGE.toString())
                         .keepJobFlowAliveWhenNoSteps(false)
                         .placement(PlacementType.builder().availabilityZone("us-east-1a").build())
                         .build())
-                .logUri("s3://ds-2-files/logs/")
+                .logUri("s3://ds-2-files-amit/logs/")
                 .steps(step_1, step_2, step_3)
                 .releaseLabel("emr-5.36.0")
                 .serviceRole("EMR_DefaultRole")
