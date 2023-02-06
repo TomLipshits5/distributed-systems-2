@@ -1,5 +1,6 @@
 import software.amazon.awssdk.services.emr.EmrClient;
 import software.amazon.awssdk.services.emr.model.*;
+import software.amazon.awssdk.services.ec2.model.InstanceType;
 
 public class Deployment {
 
@@ -24,7 +25,7 @@ public class Deployment {
         EmrClient emr = EmrClient.builder().build();
         HadoopJarStepConfig hadoopJarStepConfig_1 = HadoopJarStepConfig.builder()
                 .jar(BucketName + jar_1)
-                .args(input_1_test, output_1)
+                .args(input_1, output_1)
                 .build();
         StepConfig step_1 = StepConfig.builder()
                 .name("Step_1")
@@ -54,8 +55,8 @@ public class Deployment {
                 .instances(JobFlowInstancesConfig.builder()
                         .ec2KeyName("amit_tom")
                         .instanceCount(2)
-                        .masterInstanceType("m4.large")
-                        .slaveInstanceType("m4.large")
+                        .masterInstanceType(InstanceType.M5_XLARGE.toString())
+                        .slaveInstanceType(InstanceType.M5_XLARGE.toString())
                         .keepJobFlowAliveWhenNoSteps(false)
                         .placement(PlacementType.builder().availabilityZone("us-east-1a").build())
                         .build())

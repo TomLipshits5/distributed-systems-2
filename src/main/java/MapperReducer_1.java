@@ -23,11 +23,39 @@ public class MapperReducer_1 {
         private boolean corpusId = false;
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-             List<String> trigramList = Arrays.asList(value.toString().split("\t")).subList(0,3);
-             Text trigram = new Text(String.join(" ",trigramList.get(0), trigramList.get(1), trigramList.get(2)));
-             IntWritable corpus = corpusId ? new IntWritable(1) : new IntWritable(0);
-             context.write(trigram, corpus);
-             corpusId = !corpusId;
+            List<String> trigramList = Arrays.asList(value.toString().split("\t")).subList(0,3);
+            if (validWords(trigramList)){
+                Text trigram = new Text(String.join(" ",trigramList.get(0), trigramList.get(1), trigramList.get(2)));
+                IntWritable corpus = corpusId ? new IntWritable(1) : new IntWritable(0);
+                System.out.println(trigram);
+                context.write(trigram, corpus);
+                corpusId = !corpusId;
+            }
+        }
+
+        public boolean validWords(List<String> trigram){
+            if (trigram.size() != 3){
+                return false;
+            }
+            for (String word: trigram){
+                if(!validWord(word)){
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private boolean validWord(String word) {
+            return word.length() > 0 && allLetters(word);
+        }
+
+        private boolean allLetters(String word) {
+            for (int i = 0 ; i < word.length() ; i++){
+                if (!Character.isLetter(word.charAt(i))){
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
@@ -62,6 +90,7 @@ public class MapperReducer_1 {
         job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(TupleWritable.class);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
