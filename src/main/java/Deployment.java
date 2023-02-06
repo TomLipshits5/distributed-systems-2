@@ -3,6 +3,8 @@ import software.amazon.awssdk.services.emr.model.*;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
 
 public class Deployment {
+    public static String StopWordsPath = "eng-stopwords.txt";
+    public static String BucketName = "ds-2-files-amit";
 
 //Out of the box skeleton code need to be modified  to our needs.
     public static  void main(String[] args)  {

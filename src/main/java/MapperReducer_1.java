@@ -7,12 +7,16 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.IoUtils;
 
-import java.io.IOException;
+
+import java.io.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -21,8 +25,30 @@ import java.util.Arrays;
 public class MapperReducer_1 {
     public static class Mapper_1 extends Mapper<LongWritable, Text, Text, IntWritable>{
         private boolean corpusId = false;
+
+
+        public List<String> initStopWords(){
+            List<String> stopWords = new ArrayList<>();
+            try{
+                S3Client s3Client = S3Client.create();
+                GetObjectRequest request = GetObjectRequest.builder().bucket(Deployment.BucketName).key(Deployment.StopWordsPath).build();
+                ResponseInputStream<GetObjectResponse> object = s3Client.getObject(request);
+                String content = IoUtils.toUtf8String(object);
+                BufferedReader bufferReader = new BufferedReader(new StringReader(content));
+                String line;
+                while((line = bufferReader.readLine()) != null){
+                    stopWords.add(line.trim());
+                }
+                bufferReader.close();
+                return stopWords;
+            }catch(Exception e){
+                System.err.println("cant open stop words file, return with error: " + e);
+                return null;
+            }
+        }
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            List<String> stopWords = initStopWords();
             List<String> trigramList = Arrays.asList(value.toString().split("\t")).subList(0,3);
             if (validWords(trigramList)){
                 Text trigram = new Text(String.join(" ",trigramList.get(0), trigramList.get(1), trigramList.get(2)));
@@ -90,7 +116,7 @@ public class MapperReducer_1 {
         job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(TupleWritable.class);
-        job.setInputFormatClass(SequenceFileInputFormat.class);
+//        job.setInputFormatClass(SequenceFileInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
