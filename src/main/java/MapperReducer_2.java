@@ -70,6 +70,13 @@ public class MapperReducer_2 {
 
         }
 
+    public static class PartitionerClass extends Partitioner<Text, TupleWritable> {
+        @Override
+        public int getPartition(Text key, TupleWritable value, int numPartitions) {
+            return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
+        }
+    }
+
         // [ R, <N0+N1, T0+T1>]
 
 
@@ -78,7 +85,7 @@ public class MapperReducer_2 {
             Job job = Job.getInstance(conf, "ssss");
             job.setJarByClass(MapperReducer_2.class);
             job.setMapperClass(MapperReducer_2.Mapper2Class.class);
-            job.setPartitionerClass(Partitioner.class);
+            job.setPartitionerClass(PartitionerClass.class);
             job.setReducerClass(MapperReducer_2.Reducer2Class.class);
             job.setMapOutputKeyClass(IntWritable.class);
             job.setMapOutputValueClass(TupleWritable.class);

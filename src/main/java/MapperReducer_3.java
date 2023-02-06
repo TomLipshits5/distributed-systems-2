@@ -82,13 +82,20 @@ public class MapperReducer_3 {
         }
     }
 
+    public static class PartitionerClass extends Partitioner<Text, FloatWritable> {
+        @Override
+        public int getPartition(Text key, FloatWritable value, int numPartitions) {
+            return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Step_3");
         job.setJarByClass(MapperReducer_3.class);
         job.setMapperClass(MapperReducer_3.Mapper_3.class);
         job.setGroupingComparatorClass(Comperator_3.class);
-        job.setPartitionerClass(Partitioner.class);
+        job.setPartitionerClass(PartitionerClass.class);
         job.setReducerClass(MapperReducer_3.Reducer_3.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
