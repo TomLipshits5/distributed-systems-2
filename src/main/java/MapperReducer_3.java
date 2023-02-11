@@ -11,9 +11,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +31,7 @@ public class MapperReducer_3 {
             List<String> valueList = Arrays.asList(value.toString().split("\t"));
             if (IsNumeric(valueList.get(0))){
                 Integer r = Integer.parseInt(valueList.get(0));
+                System.out.println(valueList);
                 context.write(new Text(r + " " + "0"), new Text(valueList.get(1)));
             }else{
                 Text trigram = new Text(valueList.get(0));
@@ -42,11 +41,10 @@ public class MapperReducer_3 {
         }
     }
 
-    public static class Comperator_3 extends WritableComparator {
-        protected Comperator_3(){
+    public static class GroupingComparator extends WritableComparator {
+        protected GroupingComparator(){
             super(Text.class, true);
         }
-
         @Override
         public int compare(WritableComparable t1, WritableComparable t2){
             Text word1 = (Text) t1;
@@ -63,13 +61,22 @@ public class MapperReducer_3 {
         }
     }
 
+    public static class PartitionerClass extends Partitioner<Text, Text> {
+        @Override
+        public int getPartition(Text key, Text value, int numPartitions) {
+            Text keyVal = new Text(key.toString().split(" ")[0]);
+            return (keyVal.hashCode() & Integer.MAX_VALUE) % numPartitions;
+        }
+    }
     public static class Reducer_3 extends Reducer<Text, Text, Text, FloatWritable>{
         @Override
         public void reduce(Text r, Iterable<Text> trigrams, Context context) throws IOException, InterruptedException {
+            System.out.println(r);
             FloatWritable res = new FloatWritable();
             Iterator<Text> it = trigrams.iterator();
             if (it.hasNext()){
                 String[] numValues = it.next().toString().split(" ");
+                System.out.println(Arrays.toString(numValues));
                 BigDecimal T =  new BigDecimal(((Integer)Integer.parseInt(numValues[0])).toString());
                 BigDecimal Ni = new BigDecimal(((Integer)Integer.parseInt(numValues[1])).toString());
                 BigDecimal N_Ni = N.multiply(new BigDecimal(Ni.toString()));
@@ -77,16 +84,11 @@ public class MapperReducer_3 {
             }
             while(it.hasNext()){
                 Text trigram = it.next();
+                System.out.println(trigram);
                 context.write(trigram, res);
             }
         }
-    }
 
-    public static class PartitionerClass extends Partitioner<Text, FloatWritable> {
-        @Override
-        public int getPartition(Text key, FloatWritable value, int numPartitions) {
-            return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
-        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -94,7 +96,7 @@ public class MapperReducer_3 {
         Job job = Job.getInstance(conf, "Step_3");
         job.setJarByClass(MapperReducer_3.class);
         job.setMapperClass(MapperReducer_3.Mapper_3.class);
-        job.setGroupingComparatorClass(Comperator_3.class);
+        job.setGroupingComparatorClass(GroupingComparator.class);
         job.setPartitionerClass(PartitionerClass.class);
         job.setReducerClass(MapperReducer_3.Reducer_3.class);
         job.setMapOutputKeyClass(Text.class);

@@ -70,9 +70,9 @@ public class MapperReducer_2 {
 
         }
 
-    public static class PartitionerClass extends Partitioner<Text, TupleWritable> {
+    public static class PartitionerClass extends Partitioner<IntWritable, TupleWritable> {
         @Override
-        public int getPartition(Text key, TupleWritable value, int numPartitions) {
+        public int getPartition(IntWritable key, TupleWritable value, int numPartitions) {
             return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
         }
     }

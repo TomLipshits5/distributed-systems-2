@@ -16,12 +16,12 @@ public class Deployment {
         String output_1 = BucketName + "output_1/";
         String jar_1 = "step1.jar";
         //step2
-        String input_2 = output_1 + "part-r-00000";
+        String input_2 = output_1;
         String output_2 = BucketName + "output_2/";
         String jar_2 = "step2.jar";
         //step3
         String input_3_1 = input_2;
-        String input_3_2 = output_2 + "part-r-00000";
+        String input_3_2 = output_2 ;
         String output_3 = BucketName + "output_3/";;
         String jar_3 = "step3.jar";
 
@@ -57,14 +57,14 @@ public class Deployment {
                 .name("AmitAndTomCluster")
                 .instances(JobFlowInstancesConfig.builder()
                         .ec2KeyName("amit_tom")
-                        .instanceCount(7)
+                        .instanceCount(8)
                         .masterInstanceType(InstanceType.M5_XLARGE.toString())
                         .slaveInstanceType(InstanceType.M5_XLARGE.toString())
                         .keepJobFlowAliveWhenNoSteps(false)
                         .placement(PlacementType.builder().availabilityZone("us-east-1a").build())
                         .build())
                 .logUri("s3://ds-2-files-amit/logs/")
-                .steps(step_1, step_2, step_3)
+                .steps(step_3)
                 .releaseLabel("emr-5.36.0")
                 .serviceRole("EMR_DefaultRole")
                 .jobFlowRole("EMR_EC2_DefaultRole").build();

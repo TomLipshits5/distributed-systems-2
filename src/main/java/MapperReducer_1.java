@@ -13,20 +13,43 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.IoUtils;
-
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import java.util.Arrays;
 
 public class MapperReducer_1 {
     public static class Mapper_1 extends Mapper<LongWritable, Text, Text, IntWritable>{
         private boolean corpusId = false;
-
-
+        private final List<String> stopWords = new ArrayList<>(Arrays.asList(new String[]{"a", "about", "above", "across", "after",
+                "afterwards", "again", "against", "all", "almost", "alone", "along", "already", "also", "although",
+                "always", "am", "among", "amongst", "amoungst", "amount", "an", "and", "another", "any", "anyhow",
+                "anyone", "anything", "anyway", "anywhere", "are", "around", "as", "at", "back", "be", "became",
+                "because", "become", "becomes", "becoming", "been", "before", "beforehand", "behind", "being",
+                "below", "beside", "besides", "between", "beyond", "bill", "both", "bottom", "but", "by", "call",
+                "can", "cannot", "cant", "co", "computer", "con", "could", "couldnt", "cry", "de", "describe",
+                "detail", "do", "done", "down", "due", "during", "each", "eg", "eight", "either", "eleven", "else",
+                "elsewhere", "empty", "enough", "etc", "even", "ever", "every", "everyone", "everything", "everywhere",
+                "except", "few", "fifteen", "fify", "fill", "find", "fire", "first", "five", "for", "former", "formerly",
+                "forty", "found", "four", "from", "front", "full", "further", "get", "give", "go", "had", "has", "hasnt",
+                "have", "he", "hence", "her", "here", "hereafter", "hereby", "herein", "hereupon", "hers", "herself", "him",
+                "himself", "his", "how", "however", "hundred", "i", "ie", "if", "in", "inc", "indeed", "interest", "into",
+                "is", "it", "its", "itself", "keep", "last", "latter", "latterly", "least", "less", "ltd", "made", "many",
+                "may", "me", "meanwhile", "might", "mill", "mine", "more", "moreover", "most", "mostly", "move", "much",
+                "must", "my", "myself", "name", "namely", "neither", "never", "nevertheless", "next", "nine", "no", "nobody",
+                "none", "noone", "nor", "not", "nothing", "now", "nowhere", "of", "off", "often", "on", "once", "one", "only",
+                "onto", "or", "other", "others", "otherwise", "our", "ours", "ourselves", "out", "over", "own", "part", "per",
+                "perhaps", "please", "put", "rather", "re", "same", "see", "seem", "seemed", "seeming", "seems", "serious",
+                "several", "she", "should", "show", "side", "since", "sincere", "six", "sixty", "so", "some", "somehow",
+                "someone", "something", "sometime", "sometimes", "somewhere", "still", "such", "system", "take", "ten",
+                "than", "that", "the", "their", "them", "themselves", "then", "thence", "there", "thereafter", "thereby",
+                "therefore", "therein", "thereupon", "these", "they", "thick", "thin", "third", "this", "those", "though",
+                "three", "through", "throughout", "thru", "thus", "to", "together", "too", "top", "toward", "towards", "twelve",
+                "twenty", "two", "un", "under", "until", "up", "upon", "us", "very", "via", "was", "we", "well", "were", "what",
+                "whatever", "when", "whence", "whenever", "where", "whereafter", "whereas", "whereby", "wherein", "whereupon",
+                "wherever", "whether", "which", "while", "whither", "who", "whoever", "whole", "whom", "whose", "why", "will",
+                "with", "within", "without", "would", "yet", "you", "your", "yours", "yourself", "yourselves", "cream"}));
         public List<String> initStopWords(){
             List<String> stopWords = new ArrayList<>();
             try{
@@ -48,9 +71,9 @@ public class MapperReducer_1 {
         }
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            List<String> stopWords = initStopWords();
-            List<String> trigramList = Arrays.asList(value.toString().split("\t")).subList(0,3);
-            if (validWords(trigramList)){
+            String trigramString = Arrays.asList(value.toString().split("\t")).get(0);
+            List<String> trigramList = Arrays.asList(trigramString.split(" "));
+            if (validWords(trigramList, stopWords)){
                 Text trigram = new Text(String.join(" ",trigramList.get(0), trigramList.get(1), trigramList.get(2)));
                 IntWritable corpus = corpusId ? new IntWritable(1) : new IntWritable(0);
                 System.out.println(trigram);
@@ -59,12 +82,20 @@ public class MapperReducer_1 {
             }
         }
 
-        public boolean validWords(List<String> trigram){
+        private String printStopWords(List<String> stopWords) {
+            StringBuilder out = new StringBuilder();
+            for(String word : stopWords){
+                out.append("\"").append(word).append("\",");
+            }
+            return out.toString();
+        }
+
+        public boolean validWords(List<String> trigram, List<String> stopWords){
             if (trigram.size() != 3){
                 return false;
             }
             for (String word: trigram){
-                if(!validWord(word)){
+                if(!validWord(word) || stopWords.contains(word)){
                     return false;
                 }
             }
@@ -121,7 +152,7 @@ public class MapperReducer_1 {
         job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(TupleWritable.class);
-//        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
