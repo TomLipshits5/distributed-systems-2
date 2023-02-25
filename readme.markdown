@@ -8,7 +8,8 @@ Tom Lipshits, UserName: tomlif, ID: 316005370
 
 ***Project Architecture:***
 
-<img src="/media/tom/TomLocalMemory/School/DS/distributed-systems-2/DS2_Diagram.svg"/>
+
+<img src="DS2_Diagram.svg"/>
 
 
 ***Statistics:*** 
